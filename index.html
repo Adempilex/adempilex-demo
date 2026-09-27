@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdempiLex — Compliance AI Act per PMI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F0E4;
+    --paper-alt:#ECE4D2;
+    --paper-deep:#E3D9C2;
+    --ink:#1B2129;
+    --ink-soft:#5B5647;
+    --ink-faint:#8C8672;
+    --gold:#A87A2E;
+    --gold-bright:#C99A47;
+    --gold-pale:#E8D4A8;
+    --seal:#7C2D2D;
+    --sage:#4F6B4C;
+    --sage-pale:#DCE5D6;
+    --rust:#AD5326;
+    --rust-pale:#F0DCC9;
+    --line:#D7CCAE;
+    --white:#FFFCF4;
+    --shadow: 0 12px 32px -12px rgba(27,33,41,0.25);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Public Sans', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(168,122,46,0.05), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(124,45,45,0.04), transparent 45%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .grain{
+    position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.035; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  h1,h2,h3,h4{font-family:'Fraunces', serif; font-weight:600; color:var(--ink); letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  /* ===== TOP BAR ===== */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom:3px solid var(--gold);
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:38px; height:38px; border-radius:50%;
+    border:2px solid var(--gold-bright);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-weight:700; font-size:15px; color:var(--gold-bright);
+    position:relative;
+  }
+  .brand-mark::after{
+    content:""; position:absolute; inset:-6px; border-radius:50%;
+    border:1px dashed rgba(201,154,71,0.5);
+  }
+  .brand-name{font-family:'Fraunces', serif; font-size:20px; font-weight:600; letter-spacing:0.01em;}
+  .brand-tag{font-size:10.5px; color:var(--paper-deep); letter-spacing:0.14em; text-transform:uppercase; margin-top:1px;}
+
+  .view-switch{
+    display:flex; background:rgba(255,255,255,0.08); border-radius:999px; padding:4px; gap:2px;
+    border:1px solid rgba(255,255,255,0.14);
+  }
+  .view-switch button{
+    border:none; background:transparent; color:var(--paper-deep);
+    font-family:'Public Sans',sans-serif; font-weight:600; font-size:12.5px;
+    padding:8px 18px; border-radius:999px; cursor:pointer; letter-spacing:0.02em;
+    transition:all .25s ease;
+  }
+  .view-switch button.active{ background:var(--gold-bright); color:var(--ink); box-shadow:0 4px 14px -4px rgba(201,154,71,0.6);}
+
+  .top-right{display:flex; align-items:center; gap:16px;}
+  .env-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.08em;
+    padding:5px 10px; border:1px solid rgba(255,255,255,0.25); border-radius:5px; color:var(--paper-deep);
+  }
+  .avatar{
+    width:34px; height:34px; border-radius:50%; background:var(--gold-pale); color:var(--ink);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;
+    font-family:'Fraunces',serif;
+  }
+
+  /* ===== LAYOUT ===== */
+  .app{ display:flex; min-height:calc(100vh - 63px); position:relative; z-index:2;}
+  .sidebar{
+    width:230px; flex-shrink:0; background:var(--paper-alt); border-right:1px solid var(--line);
+    padding:22px 14px;
+  }
+  .side-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.14em; color:var(--ink-faint);
+    padding:0 12px; margin-bottom:10px; margin-top:22px;
+  }
+  .side-label:first-child{margin-top:0;}
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 12px; border-radius:8px; cursor:pointer;
+    font-size:13.6px; font-weight:600; color:var(--ink-soft);
+    margin-bottom:3px; transition:all .18s ease; border:1px solid transparent;
+  }
+  .nav-item .ic{width:17px; text-align:center; opacity:0.75; font-size:14px;}
+  .nav-item:hover{ background:var(--paper-deep); color:var(--ink);}
+  .nav-item.active{ background:var(--white); border-color:var(--line); color:var(--ink); box-shadow:var(--shadow);}
+  .nav-item.active .ic{opacity:1;}
+
+  .main{ flex:1; padding:30px 38px 60px; max-width:1180px;}
+  .screen{display:none; animation:rise .45s ease;}
+  .screen.active{display:block;}
+  @keyframes rise{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  .page-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; flex-wrap:wrap; gap:14px;}
+  .page-head h1{font-size:30px;}
+  .page-head p{color:var(--ink-soft); font-size:13.5px; margin-top:4px; max-width:520px;}
+  .btn{
+    font-family:'Public Sans',sans-serif; font-weight:700; font-size:12.8px; letter-spacing:0.01em;
+    padding:11px 20px; border-radius:7px; border:none; cursor:pointer; transition:all .2s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-gold{ background:var(--gold); color:var(--white);}
+  .btn-gold:hover{ background:var(--ink); transform:translateY(-1px);}
+  .btn-ghost{ background:transparent; border:1.5px solid var(--ink); color:var(--ink);}
+  .btn-ghost:hover{ background:var(--ink); color:var(--paper);}
+  .btn-sm{padding:7px 13px; font-size:11.5px;}
+
+  /* Cards */
+  .grid{ display:grid; gap:18px;}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  .g3{grid-template-columns:2fr 1.1fr;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .card{
+    background:var(--white); border:1px solid var(--line); border-radius:12px;
+    padding:22px; box-shadow:var(--shadow);
+  }
+  .card h3{font-size:15px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; font-weight:600;}
+  .stat-card{ padding:18px 20px;}
+  .stat-card .label{ font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--ink-faint); font-weight:700;}
+  .stat-card .val{ font-family:'Fraunces',serif; font-size:30px; font-weight:600; margin-top:6px;}
+  .stat-card .delta{ font-size:12px; margin-top:5px; font-weight:600;}
+  .up{color:var(--sage);} .down{color:var(--rust);}
+
+  /* Seal / compliance score */
+  .seal-wrap{ display:flex; align-items:center; gap:26px;}
+  .seal{
+    width:132px; height:132px; border-radius:50%; position:relative; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--gold-pale) 75%);
+    border:3px solid var(--gold);
+    transform:rotate(-4deg);
+  }
+  .seal::before{
+    content:""; position:absolute; inset:8px; border-radius:50%; border:1.5px dashed var(--gold);
+  }
+  .seal .num{font-family:'Fraunces',serif; font-size:34px; font-weight:700; color:var(--ink); transform:rotate(4deg);}
+  .seal .pct{font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; transform:rotate(4deg);}
+  .seal-meta{flex:1;}
+  .seal-meta .headline{font-family:'Fraunces',serif; font-size:19px; margin-bottom:6px;}
+  .area-bars{display:flex; flex-direction:column; gap:9px; margin-top:12px;}
+  .area-bar-row{display:grid; grid-template-columns:110px 1fr 34px; align-items:center; gap:10px; font-size:12px;}
+  .bar-track{height:7px; background:var(--paper-deep); border-radius:99px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:99px; background:linear-gradient(90deg, var(--gold), var(--gold-bright));}
+
+  /* Alerts */
+  .alert-list{display:flex; flex-direction:column; gap:10px;}
+  .alert{
+    display:flex; gap:11px; padding:11px 13px; border-radius:8px; background:var(--paper-alt);
+    border-left:3px solid var(--rust); font-size:12.6px; align-items:flex-start;
+  }
+  .alert.ok{border-left-color:var(--sage);}
+  .alert .dot{width:7px; height:7px; border-radius:50%; background:var(--rust); margin-top:4px; flex-shrink:0;}
+  .alert.ok .dot{background:var(--sage);}
+  .alert b{display:block; margin-bottom:2px;}
+
+  /* Table */
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint);
+    padding:0 12px 10px; border-bottom:1.5px solid var(--ink); font-weight:700;
+  }
+  tbody td{ padding:14px 12px; border-bottom:1px solid var(--line);}
+  tbody tr{cursor:pointer; transition:background .15s ease;}
+  tbody tr:hover{background:var(--paper-alt);}
+  .tname{font-weight:700; font-family:'Fraunces',serif; font-size:14px;}
+  .tsub{color:var(--ink-faint); font-size:11.5px; margin-top:2px;}
+  .badge{
+    display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:99px;
+    font-size:11px; font-weight:700; letter-spacing:0.02em;
+  }
+  .badge .d{width:6px; height:6px; border-radius:50%;}
+  .b-min{background:var(--sage-pale); color:var(--sage);}
+  .b-min .d{background:var(--sage);}
+  .b-lim{background:var(--gold-pale); color:var(--gold);}
+  .b-lim .d{background:var(--gold);}
+  .b-alto{background:var(--rust-pale); color:var(--rust);}
+  .b-alto .d{background:var(--rust);}
+  .b-appr{background:var(--sage-pale); color:var(--sage);}
+  .b-rev{background:#EFE6C9; color:var(--gold);}
+  .b-todo{background:var(--rust-pale); color:var(--rust);}
+
+  /* Wizard */
+  .wiz-progress{display:flex; align-items:center; margin-bottom:30px; max-width:640px;}
+  .wiz-step{display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; position:relative;}
+  .wiz-step .circ{
+    width:32px; height:32px; border-radius:50%; border:2px solid var(--line); background:var(--white);
+    display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;
+    color:var(--ink-faint); z-index:2; transition:all .25s ease;
+  }
+  .wiz-step.done .circ{background:var(--gold); border-color:var(--gold); color:var(--white);}
+  .wiz-step.current .circ{border-color:var(--gold); color:var(--gold); box-shadow:0 0 0 5px var(--gold-pale);}
+  .wiz-step span.lbl{font-size:10.5px; text-align:center; color:var(--ink-faint); max-width:90px; font-weight:600;}
+  .wiz-step.current span.lbl, .wiz-step.done span.lbl{color:var(--ink);}
+  .wiz-line{ position:absolute; top:16px; left:50%; width:100%; height:2px; background:var(--line); z-index:1;}
+  .wiz-step.done .wiz-line{background:var(--gold);}
+  .wiz-step:last-child .wiz-line{display:none;}
+
+  .wiz-card{max-width:640px;}
+  .qopt{
+    display:flex; align-items:center; gap:12px; padding:14px 16px; border:1.5px solid var(--line); border-radius:9px;
+    margin-bottom:10px; cursor:pointer; transition:all .18s ease;
+  }
+  .qopt:hover{border-color:var(--gold);}
+  .qopt.sel{border-color:var(--gold); background:var(--gold-pale);}
+  .qopt .radio{width:17px; height:17px; border-radius:50%; border:2px solid var(--ink-faint); flex-shrink:0; position:relative;}
+  .qopt.sel .radio{border-color:var(--gold);}
+  .qopt.sel .radio::after{content:""; position:absolute; inset:3px; border-radius:50%; background:var(--gold);}
+  .qopt .qt{font-weight:600; font-size:13.5px;}
+  .qopt .qd{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+
+  .result-box{
+    margin-top:22px; padding:18px 20px; border-radius:10px; background:var(--sage-pale); border:1px solid var(--sage);
+    display:flex; gap:14px; align-items:flex-start;
+  }
+  .result-box .ic{font-size:22px;}
+  .result-box b{display:block; font-family:'Fraunces',serif; font-size:15.5px; margin-bottom:3px; color:var(--sage);}
+  .wiz-nav{display:flex; justify-content:space-between; margin-top:26px; max-width:640px;}
+
+  /* Policy doc */
+  .doc-frame{
+    background:var(--white); border:1px solid var(--line); border-radius:4px; box-shadow:var(--shadow);
+    padding:44px 48px; max-width:680px; font-family:'IBM Plex Mono', monospace; font-size:12.5px; line-height:1.85; color:var(--ink);
+    position:relative;
+  }
+  .doc-frame::before{
+    content:"BOZZA — GENERATO CON ASSISTENZA AI"; position:absolute; top:20px; right:-58px;
+    background:var(--rust); color:var(--white); font-family:'Public Sans',sans-serif; font-weight:800;
+    font-size:9.5px; letter-spacing:0.08em; padding:5px 60px; transform:rotate(38deg);
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .doc-frame h4{font-family:'Fraunces',serif; font-size:17px; margin-bottom:4px;}
+  .doc-frame .docsub{color:var(--ink-faint); font-size:11px; margin-bottom:22px;}
+  .doc-frame p{margin-bottom:14px;}
+  .cite{background:var(--gold-pale); padding:1.5px 6px; border-radius:3px; font-weight:600; color:var(--gold); font-size:11px;}
+  .doc-side{display:flex; flex-direction:column; gap:14px;}
+  .cite-card{background:var(--white); border:1px solid var(--line); border-radius:10px; padding:16px;}
+  .cite-card .n{font-family:'Fraunces',serif; font-weight:700; font-size:14px; margin-bottom:8px;}
+  .cite-row{display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px dashed var(--line);}
+  .cite-row:last-child{border:none;}
+
+  /* Partner specific */
+  .client-row-detail{
+    display:none; background:var(--paper-alt); padding:16px 20px; border-radius:0 0 10px 10px; margin-top:-8px; font-size:12.5px;
+  }
+  .client-row-detail.show{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+  .ref-box{
+    background:var(--ink); color:var(--paper); border-radius:12px; padding:26px 28px; display:flex;
+    justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+  }
+  .ref-box .link{font-family:'IBM Plex Mono',monospace; font-size:13.5px; background:rgba(255,255,255,0.09); padding:10px 16px; border-radius:7px; border:1px solid rgba(255,255,255,0.18);}
+  .swatches{display:flex; gap:10px; margin-top:10px;}
+  .sw{width:34px; height:34px; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:all .15s ease;}
+  .sw.active{border-color:var(--ink); transform:scale(1.1);}
+  .wl-preview{
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .wl-preview .wl-top{padding:12px 16px; display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:700; font-size:14px;}
+  .wl-preview .wl-body{padding:22px; background:var(--white); font-size:12px; color:var(--ink-soft);}
+  .toggle{width:42px; height:24px; border-radius:99px; background:var(--line); position:relative; cursor:pointer; flex-shrink:0; transition:all .2s;}
+  .toggle.on{background:var(--sage);}
+  .toggle .dot{position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:var(--white); transition:all .2s; box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+  .toggle.on .dot{left:21px;}
+  .row-flex{display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--line);}
+  .row-flex:last-child{border:none;}
+  .row-flex .rt{font-weight:600; font-size:13px;}
+  .row-flex .rd{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+
+  .foot-note{margin-top:36px; padding-top:18px; border-top:1px solid var(--line); font-size:11px; color:var(--ink-faint); text-align:center;}
+  ::-webkit-scrollbar{width:10px;} ::-webkit-scrollbar-thumb{background:var(--gold-pale); border-radius:99px;}
+  .demo-banner{
+    position:relative; z-index:60;
+    background:#7C2D2D; color:#FFFCF4;
+    font-size:13px; font-weight:600; letter-spacing:.01em;
+    text-align:center; padding:10px 18px;
+    border-bottom:2px solid var(--gold);
+  }
+  .demo-banner span{font-weight:500; opacity:.9;}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="demo-banner">Ambiente di presentazione · dati fittizi · non è l’app in produzione · non è un parere legale · <span>adempilex-landing.vercel.app</span></div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark" style="overflow:hidden; padding:0;"><img src="data:image/jpeg;base64,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" alt="AdempiLex" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div>
+      <div class="brand-name">AdempiLex</div>
+      <div class="brand-tag">Compliance AI Act · Mock-up interattivo</div>
+    </div>
+  </div>
+  <div class="view-switch">
+    <button id="btn-view-pmi" class="active" onclick="setView('pmi')">Vista PMI cliente</button>
+    <button id="btn-view-partner" onclick="setView('partner')">Vista Partner</button>
+  </div>
+  <div class="top-right">
+    <div class="env-tag">MOCKUP · DATI FITTIZI</div>
+    <div class="avatar" id="topAvatar">BM</div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- ===== SIDEBAR PMI ===== -->
+  <div class="sidebar" id="sidebar-pmi">
+    <div class="side-label">Bianchi Meccanica S.r.l.</div>
+    <div class="nav-item active" data-screen="pmi-dashboard" onclick="setScreen('pmi','pmi-dashboard', this)"><span class="ic">◆</span> Dashboard</div>
+    <div class="nav-item" data-screen="pmi-registro" onclick="setScreen('pmi','pmi-registro', this)"><span class="ic">▤</span> Registro strumenti AI</div>
+    <div class="nav-item" data-screen="pmi-wizard" onclick="setScreen('pmi','pmi-wizard', this)"><span class="ic">◈</span> Classificazione rischio</div>
+    <div class="nav-item" data-screen="pmi-policy" onclick="setScreen('pmi','pmi-policy', this)"><span class="ic">▧</span> Policy &amp; informative</div>
+    <div class="nav-item" data-screen="pmi-formazione" onclick="setScreen('pmi','pmi-formazione', this)"><span class="ic">▨</span> Alfabetizzazione AI</div>
+    <div class="nav-item" data-screen="pmi-abbonamento" onclick="setScreen('pmi','pmi-abbonamento', this)"><span class="ic">◫</span> Abbonamento</div>
+    <div class="side-label">Studio di riferimento</div>
+    <div class="nav-item" style="cursor:default; color:var(--ink-faint);"><span class="ic">✓</span> Studio Ferretti &amp; Partners</div>
+  </div>
+
+  <!-- ===== MAIN PMI ===== -->
+  <div class="main" id="main-pmi">
+
+    <!-- DASHBOARD -->
+    <div class="screen active" id="pmi-dashboard">
+      <div class="page-head">
+        <div>
+          <h1>La tua conformità, in un colpo d'occhio</h1>
+          <p>Bianchi Meccanica S.r.l. · obbligo di trasparenza Art. 50 in vigore dal 2 agosto 2026</p>
+        </div>
+        <button class="btn btn-gold" onclick="setScreenDirect('pmi','pmi-registro')">+ Registra nuovo strumento AI</button>
+      </div>
+
+      <div class="grid g3" style="margin-bottom:18px;">
+        <div class="card">
+          <div class="seal-wrap">
+            <div class="seal"><div class="num">68</div><div class="pct">su 100</div></div>
+            <div class="seal-meta">
+              <div class="headline">In buon percorso, mancano 3 azioni</div>
+              <div class="area-bars">
+                <div class="area-bar-row"><span>Strumenti</span><div class="bar-track"><div class="bar-fill" style="width:85%"></div></div><span>85%</span></div>
+                <div class="area-bar-row"><span>Policy</span><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div><span>60%</span></div>
+                <div class="area-bar-row"><span>Informative</span><div class="bar-track"><div class="bar-fill" style="width:45%"></div></div><span>45%</span></div>
+                <div class="area-bar-row"><span>Formazione</span><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div><span>90%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Prossime scadenze</h3>
+          <div class="alert-list">
+            <div class="alert"><div class="dot"></div><div><b>2 informative dipendenti da inviare</b>In ritardo: obbligo in vigore dal 2 agosto 2026</div></div>
+            <div class="alert"><div class="dot"></div><div><b>1 strumento da classificare</b>"AI HR Recruiter" in attesa</div></div>
+            <div class="alert ok"><div class="dot"></div><div><b>Alfabetizzazione AI completata</b>8/8 dipendenti formati</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g4">
+        <div class="card stat-card"><div class="label">Strumenti registrati</div><div class="val">7</div><div class="delta up">+2 questo mese</div></div>
+        <div class="card stat-card"><div class="label">Rischio alto</div><div class="val">1</div><div class="delta down">da rivedere</div></div>
+        <div class="card stat-card"><div class="label">Policy pubblicate</div><div class="val">4 / 6</div><div class="delta up">in linea</div></div>
+        <div class="card stat-card"><div class="label">Obbligo Art. 50</div><div class="val">Attivo</div><div class="delta down">in vigore dal 2 ago 2026</div></div>
+      </div>
+    </div>
+
+    <!-- REGISTRO -->
+    <div class="screen" id="pmi-registro">
+      <div class="page-head">
+        <div><h1>Registro strumenti AI</h1><p>Ogni sistema di intelligenza artificiale usato in azienda, censito e classificato ai sensi dell'Art. 6 / Allegato III.</p></div>
+        <button class="btn btn-gold">+ Aggiungi strumento</button>
+      </div>
+      <div class="card" style="padding:8px 8px 4px;">
+        <table>
+          <thead><tr><th>Strumento</th><th>Categoria</th><th>Rischio</th><th>Stato</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div class="tname">ChatGPT Enterprise</div><div class="tsub">Uso trasversale · produttività</div></td><td>Produttività</td><td><span class="badge b-lim"><span class="d"></span>Limitato</span></td><td><span class="badge b-appr">Approvato</span></td><td>→</td></tr>
+            <tr><td><div class="tname">Microsoft Copilot</div><div class="tsub">Ufficio · reportistica</div></td><td>Produttività</td><td><span class="badge b-lim"><span class="d"></span>Limitato</span></td><td><span class="badge b-rev">In revisione</span></td><td>→</td></tr>
+            <tr><td><div class="tname">AI HR Recruiter</div><div class="tsub">Screening candidature</div></td><td>HR &amp; Recruiting</td><td><span class="badge b-alto"><span class="d"></span>Alto</span></td><td><span class="badge b-todo">Da classificare</span></td><td>→</td></tr>
+            <tr><td><div class="tname">Chatbot assistenza clienti</div><div class="tsub">Sito web · primo livello</div></td><td>Customer service</td><td><span class="badge b-lim"><span class="d"></span>Limitato</span></td><td><span class="badge b-appr">Approvato</span></td><td>→</td></tr>
+            <tr><td><div class="tname">Notion AI</div><div class="tsub">Note interne</div></td><td>Produttività</td><td><span class="badge b-min"><span class="d"></span>Minimo</span></td><td><span class="badge b-appr">Approvato</span></td><td>→</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WIZARD -->
+    <div class="screen" id="pmi-wizard">
+      <div class="page-head"><div><h1>Classificazione del rischio</h1><p>Wizard guidato — "AI HR Recruiter", passo 3 di 5.</p></div></div>
+
+      <div class="wiz-progress">
+        <div class="wiz-step done"><div class="wiz-line"></div><div class="circ">✓</div><span class="lbl">Descrizione</span></div>
+        <div class="wiz-step done"><div class="wiz-line"></div><div class="circ">✓</div><span class="lbl">Pratiche vietate Art.5</span></div>
+        <div class="wiz-step current"><div class="wiz-line"></div><div class="circ">3</div><span class="lbl">Allegato III</span></div>
+        <div class="wiz-step"><div class="wiz-line"></div><div class="circ">4</div><span class="lbl">Obblighi applicabili</span></div>
+        <div class="wiz-step"><div class="circ">5</div><span class="lbl">Riepilogo</span></div>
+      </div>
+
+      <div class="card wiz-card">
+        <h3 style="margin-bottom:4px;">Lo strumento rientra in una delle categorie dell'Allegato III?</h3>
+        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:18px;">Seleziona la categoria più pertinente all'uso che ne fai in azienda.</p>
+        <div class="qopt sel"><div class="radio"></div><div><div class="qt">Occupazione, gestione dei lavoratori, accesso al lavoro autonomo</div><div class="qd">Screening CV, valutazione candidati, decisioni su promozioni</div></div></div>
+        <div class="qopt"><div class="radio"></div><div><div class="qt">Accesso a servizi essenziali pubblici e privati</div><div class="qd">Credit scoring, valutazione idoneità assicurativa</div></div></div>
+        <div class="qopt"><div class="radio"></div><div><div class="qt">Nessuna delle precedenti</div><div class="qd">Uso generico non riconducibile a categorie ad alto rischio</div></div></div>
+
+        <div class="result-box">
+          <div class="ic">⚠</div>
+          <div><b>Classificazione preliminare: rischio Alto</b>Lo strumento ricade nell'Allegato III, punto 4 (occupazione). Sono richiesti: valutazione d'impatto, supervisione umana documentata, registrazione nel registro UE.</div>
+        </div>
+
+        <div class="wiz-nav">
+          <button class="btn btn-ghost btn-sm">← Indietro</button>
+          <button class="btn btn-gold btn-sm">Continua →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POLICY -->
+    <div class="screen" id="pmi-policy">
+      <div class="page-head"><div><h1>Policy &amp; informative</h1><p>Prima bozza generata dall'AI su normativa italiana, con citazioni puntuali. Rivedi e approva prima della pubblicazione.</p></div></div>
+      <div class="grid g3">
+        <div class="doc-frame">
+          <h4>Informativa ai lavoratori sull'uso di sistemi di Intelligenza Artificiale</h4>
+          <div class="docsub">Bianchi Meccanica S.r.l. — versione 0.3, generata il 3 settembre 2026</div>
+          <p>1. Ambito di applicazione — La presente informativa si applica a tutti i sistemi di intelligenza artificiale utilizzati nei processi lavorativi dell'azienda <span class="cite">Art. 4 AI Act</span>.</p>
+          <p>2. Trasparenza verso i lavoratori — I dipendenti devono essere informati prima dell'impiego di sistemi AI che li riguardano direttamente <span class="cite">L. 132/2025 art. 10-11</span>, <span class="cite">AI Act art. 26(7)</span>.</p>
+          <p>3. Diritto di spiegazione — In caso di decisione che incide significativamente sulla posizione lavorativa, il dipendente ha diritto a una spiegazione del ruolo del sistema AI nella decisione <span class="cite">AI Act art. 86</span>.</p>
+        </div>
+        <div class="doc-side">
+          <div class="cite-card">
+            <div class="n">Fonti normative</div>
+            <div class="cite-row"><span>EU AI Act</span><span class="mono">12 citazioni</span></div>
+            <div class="cite-row"><span>L. 132/2025</span><span class="mono">5 citazioni</span></div>
+            <div class="cite-row"><span>GDPR</span><span class="mono">3 citazioni</span></div>
+          </div>
+          <div class="cite-card">
+            <div class="n">Stato revisione</div>
+            <div class="cite-row"><span>Bozza AI</span><span class="mono">✓</span></div>
+            <div class="cite-row"><span>Revisione compliance</span><span class="mono">in corso</span></div>
+            <div class="cite-row"><span>Approvazione finale</span><span class="mono">—</span></div>
+          </div>
+          <button class="btn btn-gold" style="width:100%; justify-content:center;">Approva e pubblica</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORMAZIONE -->
+    <div class="screen" id="pmi-formazione">
+      <div class="page-head">
+        <div><h1>Alfabetizzazione AI</h1><p>Formazione obbligatoria sull'uso dell'intelligenza artificiale per i collaboratori, ai sensi dell'Art. 4 dell'AI Act.</p></div>
+        <button class="btn btn-gold">+ Assegna percorso formativo</button>
+      </div>
+      <div class="grid g3" style="margin-bottom:18px;">
+        <div class="card">
+          <div class="seal-wrap">
+            <div class="seal"><div class="num">89</div><div class="pct">su 100</div></div>
+            <div class="seal-meta">
+              <div class="headline">8 collaboratori su 9 hanno completato la formazione</div>
+              <div class="area-bars">
+                <div class="area-bar-row"><span>Amministrazione</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span>100%</span></div>
+                <div class="area-bar-row"><span>HR</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span>100%</span></div>
+                <div class="area-bar-row"><span>Produzione</span><div class="bar-track"><div class="bar-fill" style="width:75%"></div></div><span>75%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Da sollecitare</h3>
+          <div class="alert-list">
+            <div class="alert"><div class="dot"></div><div><b>Luca Ferri — Produzione</b>Percorso assegnato, non ancora iniziato</div></div>
+            <div class="alert ok"><div class="dot"></div><div><b>Tutti gli altri reparti</b>Formazione completata e verificata</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:8px 8px 4px;">
+        <table>
+          <thead><tr><th>Collaboratore</th><th>Reparto</th><th>Percorso assegnato</th><th>Stato</th><th>Completato il</th></tr></thead>
+          <tbody>
+            <tr><td class="tname">Marco Bianchi</td><td>Amministrazione</td><td>Alfabetizzazione AI — base</td><td><span class="badge b-appr">Completato</span></td><td>12 ago 2026</td></tr>
+            <tr><td class="tname">Elena Rossi</td><td>HR</td><td>Alfabetizzazione AI — base</td><td><span class="badge b-appr">Completato</span></td><td>13 ago 2026</td></tr>
+            <tr><td class="tname">Sara Conti</td><td>HR</td><td>Alfabetizzazione AI — base</td><td><span class="badge b-appr">Completato</span></td><td>13 ago 2026</td></tr>
+            <tr><td class="tname">Luca Ferri</td><td>Produzione</td><td>Alfabetizzazione AI — base</td><td><span class="badge b-todo">Da iniziare</span></td><td>—</td></tr>
+            <tr><td class="tname">Anna Galli</td><td>Produzione</td><td>Alfabetizzazione AI — base</td><td><span class="badge b-appr">Completato</span></td><td>20 ago 2026</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABBONAMENTO -->
+    <div class="screen" id="pmi-abbonamento">
+      <div class="page-head">
+        <div><h1>Abbonamento e fatturazione</h1><p>Il piano sottoscritto, il metodo di pagamento e lo storico delle fatture.</p></div>
+      </div>
+      <div class="grid g3" style="margin-bottom:18px;">
+        <div class="card">
+          <h3>Piano attivo</h3>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:6px;">
+            <div style="font-family:'Fraunces',serif; font-size:26px; font-weight:700;">Plus</div>
+            <div class="mono" style="color:var(--ink-faint); font-size:13px;">€89 / mese</div>
+          </div>
+          <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Strumenti AI illimitati, classificazione e generazione documentale complete, white-label logo e colore.</p>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-gold btn-sm">Passa a Pro</button>
+            <button class="btn btn-ghost btn-sm">Gestisci pagamento</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Prossimo addebito</h3>
+          <div class="area-bar-row" style="grid-template-columns:1fr auto; margin-bottom:10px;"><span>Data</span><b>3 ottobre 2026</b></div>
+          <div class="area-bar-row" style="grid-template-columns:1fr auto; margin-bottom:10px;"><span>Importo</span><b class="mono">€89,00</b></div>
+          <div class="area-bar-row" style="grid-template-columns:1fr auto;"><span>Metodo</span><b>Carta ···· 4471</b></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Storico fatture</h3>
+        <table>
+          <thead><tr><th>Data</th><th>Descrizione</th><th>Importo</th><th>Stato</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>3 settembre 2026</td><td>Abbonamento Plus — settembre</td><td class="mono">€89,00</td><td><span class="badge b-appr">Pagata</span></td><td>↓ PDF</td></tr>
+            <tr><td>3 agosto 2026</td><td>Abbonamento Plus — agosto</td><td class="mono">€89,00</td><td><span class="badge b-appr">Pagata</span></td><td>↓ PDF</td></tr>
+            <tr><td>3 luglio 2026</td><td>Passaggio Free → Plus</td><td class="mono">€89,00</td><td><span class="badge b-appr">Pagata</span></td><td>↓ PDF</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px; color:var(--ink-faint); margin-top:12px; padding:0 4px 6px;">In caso di mancato pagamento è previsto un periodo di grazia di 7 e 14 giorni prima della sospensione delle funzionalità core; i dati restano accessibili in sola lettura.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== SIDEBAR PARTNER ===== -->
+  <div class="sidebar" id="sidebar-partner" style="display:none;">
+    <div class="side-label">Studio Ferretti &amp; Partners</div>
+    <div class="nav-item active" data-screen="p-dashboard" onclick="setScreen('partner','p-dashboard', this)"><span class="ic">◆</span> Dashboard studio</div>
+    <div class="nav-item" data-screen="p-clienti" onclick="setScreen('partner','p-clienti', this)"><span class="ic">▥</span> I miei clienti</div>
+    <div class="nav-item" data-screen="p-whitelabel" onclick="setScreen('partner','p-whitelabel', this)"><span class="ic">◈</span> Marchio &amp; white-label</div>
+    <div class="nav-item" data-screen="p-provvigioni" onclick="setScreen('partner','p-provvigioni', this)"><span class="ic">◎</span> Provvigioni</div>
+    <div class="side-label">Piano attivo</div>
+    <div class="nav-item" style="cursor:default; color:var(--ink-faint);"><span class="ic">✓</span> Partner White-label</div>
+  </div>
+
+  <!-- ===== MAIN PARTNER ===== -->
+  <div class="main" id="main-partner" style="display:none;">
+
+    <div class="screen active" id="p-dashboard">
+      <div class="page-head">
+        <div><h1>Il portafoglio compliance dei tuoi clienti</h1><p>Studio Ferretti &amp; Partners · 12 aziende attive su AdempiLex</p></div>
+        <button class="btn btn-gold">+ Invita nuovo cliente</button>
+      </div>
+      <div class="grid g4" style="margin-bottom:18px;">
+        <div class="card stat-card"><div class="label">Clienti attivi</div><div class="val">12</div><div class="delta up">+3 questo trimestre</div></div>
+        <div class="card stat-card"><div class="label">Compliance media</div><div class="val">71%</div><div class="delta up">+6 pt vs mese scorso</div></div>
+        <div class="card stat-card"><div class="label">Clienti a rischio</div><div class="val">2</div><div class="delta down">sotto il 50%</div></div>
+        <div class="card stat-card"><div class="label">Provvigioni MTD</div><div class="val mono">€940</div><div class="delta up">25% commissione</div></div>
+      </div>
+      <div class="card">
+        <h3>Attività recenti dei clienti</h3>
+        <div class="alert-list">
+          <div class="alert ok"><div class="dot"></div><div><b>Bianchi Meccanica S.r.l.</b>Ha pubblicato l'informativa AI per i lavoratori — 2 ore fa</div></div>
+          <div class="alert"><div class="dot"></div><div><b>NordEst Logistica S.p.A.</b>1 strumento ad alto rischio non ancora classificato — 1 giorno fa</div></div>
+          <div class="alert ok"><div class="dot"></div><div><b>Verdi Comunicazione S.r.l.</b>Onboarding completato, primo strumento registrato — 3 giorni fa</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="p-clienti">
+      <div class="page-head"><div><h1>I miei clienti</h1><p>Vista multi-cliente: uno sguardo d'insieme, senza aprire 12 fogli Excel diversi.</p></div></div>
+      <div class="card" style="padding:8px 8px 4px;">
+        <table>
+          <thead><tr><th>Azienda</th><th>Settore</th><th>Strumenti AI</th><th>Compliance</th><th>Stato</th></tr></thead>
+          <tbody>
+            <tr onclick="toggleClient(this,'d1')"><td><div class="tname">Bianchi Meccanica S.r.l.</div><div class="tsub">42 dipendenti</div></td><td>Manifatturiero</td><td>7</td><td><span class="badge b-lim"><span class="d"></span>68%</span></td><td><span class="badge b-appr">In linea</span></td></tr>
+          </tbody>
+        </table>
+        <div class="client-row-detail" id="d1">
+          <div><div class="tsub">Referente</div><b>Marco Bianchi, titolare</b></div>
+          <div><div class="tsub">Ultimo accesso</div><b>Oggi, 09:14</b></div>
+          <div><div class="tsub">Prossima scadenza</div><b>Informativa RSU — in ritardo</b></div>
+          <div><button class="btn btn-ghost btn-sm">Apri come admin →</button></div>
+        </div>
+        <table style="margin-top:6px;">
+          <tbody>
+            <tr onclick="toggleClient(this,'d2')"><td><div class="tname">NordEst Logistica S.p.A.</div><div class="tsub">128 dipendenti</div></td><td>Logistica</td><td>15</td><td><span class="badge b-alto"><span class="d"></span>44%</span></td><td><span class="badge b-todo">Da presidiare</span></td></tr>
+          </tbody>
+        </table>
+        <div class="client-row-detail" id="d2">
+          <div><div class="tsub">Referente</div><b>Elisa Conti, HR manager</b></div>
+          <div><div class="tsub">Ultimo accesso</div><b>4 giorni fa</b></div>
+          <div><div class="tsub">Prossima scadenza</div><b>Classificazione 3 strumenti</b></div>
+          <div><button class="btn btn-ghost btn-sm">Apri come admin →</button></div>
+        </div>
+        <table style="margin-top:6px;">
+          <tbody>
+            <tr onclick="toggleClient(this,'d3')"><td><div class="tname">Verdi Comunicazione S.r.l.</div><div class="tsub">9 dipendenti</div></td><td>Marketing &amp; comunicazione</td><td>4</td><td><span class="badge b-min"><span class="d"></span>82%</span></td><td><span class="badge b-appr">In linea</span></td></tr>
+          </tbody>
+        </table>
+        <div class="client-row-detail" id="d3">
+          <div><div class="tsub">Referente</div><b>Giulia Verdi, socia</b></div>
+          <div><div class="tsub">Ultimo accesso</div><b>Ieri, 17:40</b></div>
+          <div><div class="tsub">Prossima scadenza</div><b>Nessuna nei prossimi 30 gg</b></div>
+          <div><button class="btn btn-ghost btn-sm">Apri come admin →</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="p-whitelabel">
+      <div class="page-head"><div><h1>Marchio &amp; white-label</h1><p>I tuoi clienti vedono lo strumento con il marchio del tuo studio, non con quello di AdempiLex.</p></div></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>Personalizzazione</h3>
+          <div class="row-flex"><div><div class="rt">Mostra il tuo logo al posto di AdempiLex</div><div class="rd">Visibile ai tuoi clienti in ogni schermata</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="dot"></div></div></div>
+          <div class="row-flex"><div><div class="rt">Dominio personalizzato</div><div class="rd">compliance.studioferretti.it</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="dot"></div></div></div>
+          <div class="row-flex"><div><div class="rt">Nascondi menzione "powered by AdempiLex"</div><div class="rd">Disponibile in base al livello di programma partner concordato</div></div><div class="toggle" onclick="this.classList.toggle('on')"><div class="dot"></div></div></div>
+          <div style="margin-top:16px;">
+            <div class="rd" style="margin-bottom:8px; font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:0.08em;">Colore d'accento</div>
+            <div class="swatches">
+              <div class="sw active" style="background:#A87A2E" onclick="selSwatch(this)"></div>
+              <div class="sw" style="background:#4F6B4C" onclick="selSwatch(this)"></div>
+              <div class="sw" style="background:#3A5A78" onclick="selSwatch(this)"></div>
+              <div class="sw" style="background:#7C2D2D" onclick="selSwatch(this)"></div>
+              <div class="sw" style="background:#5B4B8A" onclick="selSwatch(this)"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="rd" style="margin-bottom:10px; font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:0.08em;">Anteprima per il cliente</div>
+          <div class="wl-preview">
+            <div class="wl-top" style="background:var(--ink); color:var(--paper);">
+              <div class="brand-mark" style="width:26px;height:26px;font-size:11px;">SF</div> Studio Ferretti — Compliance Hub
+            </div>
+            <div class="wl-body">
+              <div style="font-family:'Fraunces',serif; font-size:15px; color:var(--ink); margin-bottom:8px; font-weight:700;">Benvenuto, Bianchi Meccanica</div>
+              La tua conformità AI Act è seguita direttamente dal tuo studio di fiducia.
+              <div style="margin-top:14px; padding:10px 14px; background:var(--gold-pale); border-radius:8px; font-size:11.5px;">Punteggio compliance: <b>68/100</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="p-provvigioni">
+      <div class="page-head"><div><h1>Provvigioni</h1><p>Il tuo margine su ogni cliente attivo, senza dover gestire fatturazione o supporto tecnico diretto.</p></div></div>
+
+      <div class="ref-box" style="margin-bottom:18px;">
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em; opacity:0.7; margin-bottom:6px;">Il tuo link di invito</div>
+          <div class="link">adempilex.it/r/studio-ferretti</div>
+        </div>
+        <button class="btn btn-gold" onclick="copyLink(this)">Copia link</button>
+      </div>
+
+      <div class="grid g4" style="margin-bottom:18px;">
+        <div class="card stat-card"><div class="label">Provvigione per cliente</div><div class="val">25%</div><div class="delta up">ricorrente, ogni mese</div></div>
+        <div class="card stat-card"><div class="label">Clienti fatturati</div><div class="val">12</div><div class="delta up">su 12 attivi</div></div>
+        <div class="card stat-card"><div class="label">Maturato questo mese</div><div class="val mono">€940</div><div class="delta up">+18% vs luglio</div></div>
+        <div class="card stat-card"><div class="label">Proiezione annua</div><div class="val mono">≈ €11.300</div><div class="delta up">a portafoglio costante</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Dettaglio per cliente</h3>
+        <table>
+          <thead><tr><th>Cliente</th><th>Piano</th><th>Canone mensile</th><th>Tua provvigione</th></tr></thead>
+          <tbody>
+            <tr><td class="tname">Bianchi Meccanica S.r.l.</td><td>Plus</td><td class="mono">€89</td><td class="mono">€22,25</td></tr>
+            <tr><td class="tname">NordEst Logistica S.p.A.</td><td>Pro</td><td class="mono">€199</td><td class="mono">€49,75</td></tr>
+            <tr><td class="tname">Verdi Comunicazione S.r.l.</td><td>Plus</td><td class="mono">€89</td><td class="mono">€22,25</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px; color:var(--ink-faint); margin-top:12px; padding:0 4px 6px;">Pricing proposto, da validare in Fase 0 — vedi PRD, capitolo "Canali di guadagno".</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="foot-note">AdempiLex — mock-up a scopo dimostrativo, dati fittizi · pensato per una conversazione con partner di canale (consulenza, formazione, studi)</div>
+
+<script>
+function setView(v){
+  document.getElementById('btn-view-pmi').classList.toggle('active', v==='pmi');
+  document.getElementById('btn-view-partner').classList.toggle('active', v==='partner');
+  document.getElementById('sidebar-pmi').style.display = v==='pmi' ? 'block':'none';
+  document.getElementById('main-pmi').style.display = v==='pmi' ? 'block':'none';
+  document.getElementById('sidebar-partner').style.display = v==='partner' ? 'block':'none';
+  document.getElementById('main-partner').style.display = v==='partner' ? 'block':'none';
+  document.getElementById('topAvatar').textContent = v==='pmi' ? 'BM' : 'SF';
+}
+function setScreen(scope, id, el){
+  const prefix = scope==='pmi' ? 'sidebar-pmi' : 'sidebar-partner';
+  document.querySelectorAll('#'+prefix+' .nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  const mainId = scope==='pmi' ? 'main-pmi' : 'main-partner';
+  document.querySelectorAll('#'+mainId+' .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setScreenDirect(scope, id){
+  const prefix = scope==='pmi' ? 'sidebar-pmi' : 'sidebar-partner';
+  const el = document.querySelector('#'+prefix+' [data-screen="'+id+'"]');
+  setScreen(scope, id, el);
+}
+function toggleClient(row, id){
+  document.querySelectorAll('.client-row-detail').forEach(d=>{ if(d.id!==id) d.classList.remove('show'); });
+  document.getElementById(id).classList.toggle('show');
+}
+function selSwatch(el){
+  document.querySelectorAll('.sw').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+function copyLink(btn){
+  const orig = btn.textContent;
+  btn.textContent = 'Copiato ✓';
+  setTimeout(()=>btn.textContent=orig, 1600);
+}
+// wizard option selection
+document.querySelectorAll('.qopt').forEach(o=>{
+  o.addEventListener('click', ()=>{
+    o.parentElement.querySelectorAll('.qopt').forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel');
+  });
+});
+</script>
+</body>
+</html>
