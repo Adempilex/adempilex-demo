@@ -6,16 +6,16 @@
 <title>AdempiLex — Compliance AI Act per PMI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#F5F0E4;
-    --paper-alt:#ECE4D2;
+    --paper:#F7F6F3;
+    --paper-alt:#FFFFFF;
     --paper-deep:#E3D9C2;
-    --ink:#1B2129;
+    --ink:#14202B;
     --ink-soft:#5B5647;
     --ink-faint:#8C8672;
-    --gold:#A87A2E;
+    --gold:#B8862F;
     --gold-bright:#C99A47;
     --gold-pale:#E8D4A8;
     --seal:#7C2D2D;
@@ -23,13 +23,13 @@
     --sage-pale:#DCE5D6;
     --rust:#AD5326;
     --rust-pale:#F0DCC9;
-    --line:#D7CCAE;
+    --line:#E4E0D8;
     --white:#FFFCF4;
     --shadow: 0 12px 32px -12px rgba(27,33,41,0.25);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
-    font-family:'Public Sans', sans-serif;
+    font-family:Outfit, sans-serif;
     background:var(--paper);
     color:var(--ink);
     -webkit-font-smoothing:antialiased;
@@ -48,7 +48,7 @@
     position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.035; mix-blend-mode:multiply;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  h1,h2,h3,h4{font-family:'Fraunces', serif; font-weight:600; color:var(--ink); letter-spacing:-0.01em;}
+  h1,h2,h3,h4{font-family:Outfit, sans-serif; font-weight:600; color:var(--ink); letter-spacing:-0.01em;}
   .mono{font-family:'IBM Plex Mono', monospace;}
 
   /* ===== TOP BAR ===== */
@@ -56,32 +56,32 @@
     position:sticky; top:0; z-index:50;
     display:flex; align-items:center; justify-content:space-between;
     padding:14px 28px;
-    background:var(--ink);
-    color:var(--paper);
-    border-bottom:3px solid var(--gold);
+    background:#F7F6F3;
+    color:#14202B;
+    border-bottom:1px solid #E4E0D8;
   }
   .brand{display:flex; align-items:center; gap:12px;}
   .brand-mark{
     width:38px; height:38px; border-radius:50%;
     border:2px solid var(--gold-bright);
     display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces', serif; font-weight:700; font-size:15px; color:var(--gold-bright);
+    font-family:Outfit, sans-serif; font-weight:700; font-size:15px; color:var(--gold-bright);
     position:relative;
   }
   .brand-mark::after{
     content:""; position:absolute; inset:-6px; border-radius:50%;
     border:1px dashed rgba(201,154,71,0.5);
   }
-  .brand-name{font-family:'Fraunces', serif; font-size:20px; font-weight:600; letter-spacing:0.01em;}
-  .brand-tag{font-size:10.5px; color:var(--paper-deep); letter-spacing:0.14em; text-transform:uppercase; margin-top:1px;}
+  .brand-name{font-family:Outfit, sans-serif; font-size:20px; font-weight:600; letter-spacing:0.01em;}
+  .brand-tag{font-size:10.5px; color:#5E6A75; letter-spacing:0.14em; text-transform:uppercase; margin-top:1px;}
 
   .view-switch{
     display:flex; background:rgba(255,255,255,0.08); border-radius:999px; padding:4px; gap:2px;
     border:1px solid rgba(255,255,255,0.14);
   }
   .view-switch button{
-    border:none; background:transparent; color:var(--paper-deep);
-    font-family:'Public Sans',sans-serif; font-weight:600; font-size:12.5px;
+    border:none; background:transparent; color:#5E6A75;
+    font-family:Outfit,sans-serif; font-weight:600; font-size:12.5px;
     padding:8px 18px; border-radius:999px; cursor:pointer; letter-spacing:0.02em;
     transition:all .25s ease;
   }
@@ -90,7 +90,7 @@
   .top-right{display:flex; align-items:center; gap:16px;}
   .env-tag{
     font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.08em;
-    padding:5px 10px; border:1px solid rgba(255,255,255,0.25); border-radius:5px; color:var(--paper-deep);
+    padding:5px 10px; border:1px solid rgba(255,255,255,0.25); border-radius:5px; color:#5E6A75;
   }
   .avatar{
     width:34px; height:34px; border-radius:50%; background:var(--gold-pale); color:var(--ink);
@@ -129,7 +129,7 @@
   .page-head h1{font-size:30px;}
   .page-head p{color:var(--ink-soft); font-size:13.5px; margin-top:4px; max-width:520px;}
   .btn{
-    font-family:'Public Sans',sans-serif; font-weight:700; font-size:12.8px; letter-spacing:0.01em;
+    font-family:Outfit,sans-serif; font-weight:700; font-size:12.8px; letter-spacing:0.01em;
     padding:11px 20px; border-radius:7px; border:none; cursor:pointer; transition:all .2s ease;
     display:inline-flex; align-items:center; gap:8px;
   }
@@ -258,7 +258,7 @@
   }
   .doc-frame::before{
     content:"BOZZA — GENERATO CON ASSISTENZA AI"; position:absolute; top:20px; right:-58px;
-    background:var(--rust); color:var(--white); font-family:'Public Sans',sans-serif; font-weight:800;
+    background:var(--rust); color:var(--white); font-family:Outfit,sans-serif; font-weight:800;
     font-size:9.5px; letter-spacing:0.08em; padding:5px 60px; transform:rotate(38deg);
     box-shadow:0 3px 8px rgba(0,0,0,0.25);
   }
